@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>المعرض الشخصي — محمد ثروت</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<style>
+:root{--bg1:#071026;--bg2:#14121b;--accent1:#7c4dff;--accent2:#ff4da6;--txt:#eef2ff;--muted:rgba(238,242,255,0.65);font-family:'Cairo',system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:var(--txt);direction:rtl;overflow-x:hidden;}
+#bg-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;display:block;}
+.anime-bg{position:fixed;inset:0;z-index:0;background-image:url('https://images.unsplash.com/photo-1625485088526-e5a8c4f0b2a7?q=80&w=1600');background-size:cover;background-position:center;filter: blur(12px) saturate(1.15) contrast(1.02) brightness(0.7);transform:scale(1.02);mix-blend-mode:overlay;opacity:0.9;}
+.container{position:relative;z-index:2;max-width:1400px;margin:28px auto;padding:28px;}
+nav{display:flex;gap:16px;margin-bottom:28px;flex-wrap:wrap;}
+nav button{appearance:none;border:0;padding:10px 14px;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));color:var(--txt);cursor:pointer;font-weight:700;backdrop-filter:blur(6px);transition:0.3s;}
+nav button.active{background:linear-gradient(90deg,var(--accent1),var(--accent2));box-shadow:0 8px 30px rgba(124,77,255,0.16);}
+.section{display:none;}
+.section.active{display:block;}
+h1,h2,h3{margin-bottom:12px;}
+p{margin-bottom:10px;color:var(--muted);}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:12px;}
+.card{position:relative;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:14px;padding:14px;box-shadow:0 18px 60px rgba(2,6,23,0.6);overflow:hidden;border:1px solid rgba(255,255,255,0.03);perspective:1000px;transform-style:preserve-3d;}
+.card-inner{transition:transform .7s cubic-bezier(.2,.95,.2,1);transform-style:preserve-3d;}
+.card:hover .card-inner{transform:rotateY(180deg) translateY(-6px);}
+.card-front,.card-back{backface-visibility:hidden;border-radius:10px;}
+.card-front{position:relative;padding-bottom:12px;}
+.card-thumb{height:150px;border-radius:10px;overflow:hidden;background:linear-gradient(120deg,#0b0b12,#1b1230);display:flex;align-items:center;justify-content:center;}
+.card-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.card-body{padding:12px;}
+.tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.tag{background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:999px;font-size:12px;}
+.card-back{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.01));display:flex;align-items:center;justify-content:center;padding:18px;transform:rotateY(180deg);}
+input,textarea{width:100%;padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--txt);}
+button.btn{cursor:pointer;}
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:999;background:linear-gradient(0deg,rgba(2,6,23,0.6),rgba(2,6,23,0.35));padding:18px;}
+.modal.open{display:flex;}
+.panel{width:900px;max-width:96%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:14px;padding:18px;box-shadow:0 30px 80px rgba(2,6,23,0.7);max-height:90vh;overflow:auto;}
+.file-input{display:flex;gap:8px;align-items:center;}
+.upload-preview{width:88px;height:64px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;}
+.searchbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;}
+.searchbar input, .searchbar select{flex:1;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--txt);}
+</style>
+</head>
+<body>
+<div class="anime-bg" aria-hidden="true"></div>
+<canvas id="bg-canvas"></canvas>
+<div class="container">
+<nav>
+<button class="active" data-section="home">الرئيسية</button>
+<button data-section="about">عن محمد ثروت</button>
+<button data-section="projects">المشاريع</button>
+<button data-section="gallery">معرض الصور</button>
+<button data-section="blog">المدونة</button>
+<button data-section="contact">تواصل</button>
+<button class="primary" id="adminBtn">لوحة الإدارة</button>
+</nav>
+
+<div class="section active" id="home">
+  <h1>مرحبا بك في معرض أعمال محمد ثروت</h1>
+  <p>عرض المشاريع، السيرة الذاتية، والمدونة.</p>
+  <h2>أعمال سابقة</h2>
+  <div class="grid" id="homeProjectsGrid"></div>
+</div>
+
+<div class="section" id="about">
+  <h1>عن محمد ثروت</h1>
+  <p> انا مطور احب تصميم وتطوير مواقع الويب بطريقه احترافيه </p>
+</div>
+
+<div class="section" id="projects">
+<h1>المشاريع</h1>
+<div class="searchbar">
+<input id="searchInput" placeholder="بحث عن مشروع أو وصف...">
+<select id="filterTech">
+<option value="">الكل</option>
+<option value="web">ويب</option>
+<option value="app">تطبيق</option>
+<option value="design">تصميم</option>
+</select>
+</div>
+<div class="grid" id="projectsGrid"></div>
+</div>
+
+<div class="section" id="gallery">
+<h1>معرض الصور</h1>
+<div class="grid" id="galleryGrid"></div>
+</div>
+
+<div class="section" id="blog">
+<h1>المدونة / الأخبار</h1>
+<div id="blogList"></div>
+</div>
+
+<div class="section" id="contact">
+<h1>تواصل معي</h1>
+<input placeholder="الاسم"><br><br>
+<input placeholder="البريد الإلكتروني"><br><br>
+<textarea rows="4" placeholder="رسالتك"></textarea><br><br>
+<button class="btn primary">إرسال</button>
+</div>
+
+<!-- Admin Modal -->
+<div class="modal" id="adminModal" aria-hidden="true">
+<div class="panel">
+<h2>لوحة الإدارة</h2>
+<div class="form-row">
+<input id="titleInput" placeholder="عنوان المشروع">
+<input id="techInput" placeholder="النوع (web/app/design)">
+</div>
+<textarea id="descInput" rows="3" placeholder="وصف المشروع"></textarea>
+<div class="file-input">
+<div class="upload-preview" id="uploadPreview">+</div>
+<input type="file" id="fileInput" accept="image/*">
+<button class="btn" id="clearUpload">مسح الصورة</button>
+</div>
+<button class="btn primary" id="addProjectBtn">أضف / حفظ</button>
+<button class="btn" id="closeAdmin">إغلاق</button>
+</div>
+</div>
+
+<script>
+// استيراد المشاريع تلقائيًا من localStorage
+let projects=JSON.parse(localStorage.getItem('portfolio_v7')||`[
+{"id":"p1","title":"موقع شركة خدمات رقمية","desc":"موقع ويب احترافي لشركة تسويق رقمي","tech":"web","thumb":"https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200"},
+{"id":"p2","title":"منصة بيع منتجات","desc":"موقع تجارة إلكترونية بسيط","tech":"web","thumb":"https://images.unsplash.com/photo-1519337265831-281ec6cc8514?w=1200"},
+{"id":"p3","title":"موقع شخصي (Portfolio)","desc":"بورتفوليو شخصي لعرض الأعمال","tech":"web","thumb":"https://images.unsplash.com/photo-1504805572947-34fad45aed93?w=1200"},
+{"id":"p4","title":"موقع تعليمي أونلاين","desc":"منصة عرض كورسات ودروس","tech":"web","thumb":"https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200"}
+]`);
+
+function saveProjects(){localStorage.setItem('portfolio_v7',JSON.stringify(projects)); renderProjects(); renderGallery(); renderHomeProjects();}
+
+// التنقل بين الأقسام
+document.querySelectorAll('nav button[data-section]').forEach(btn=>{
+btn.onclick=()=>{document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));document.getElementById(btn.dataset.section).classList.add('active');btn.classList.add('active');}
+});
+
+// لوحة الإدارة
+const adminModal=document.getElementById('adminModal');
+document.getElementById('adminBtn').onclick=()=>{
+const pw=prompt('أدخل كلمة المرور:'); if(pw!=='admin123'){alert('كلمة مرور خاطئة');return;}
+adminModal.classList.add('open');adminModal.setAttribute('aria-hidden','false');
+};
+document.getElementById('closeAdmin').onclick=()=>{adminModal.classList.remove('open');adminModal.setAttribute('aria-hidden','true');};
+
+// رفع صور
+let currentUploadData='';
+const fileInput=document.getElementById('fileInput');
+const uploadPreview=document.getElementById('uploadPreview');
+fileInput.onchange=e=>{
+const f=e.target.files[0]; if(!f)return;
+const reader=new FileReader();
+reader.onload=()=>{currentUploadData=reader.result;uploadPreview.innerHTML=`<img src="${currentUploadData}" style="width:100%;height:100%;object-fit:cover">`;};
+reader.readAsDataURL(f);
+};
+document.getElementById('clearUpload').onclick=()=>{fileInput.value='';currentUploadData='';uploadPreview.innerHTML='+';};
+
+// إضافة مشروع جديد
+document.getElementById('addProjectBtn').onclick=()=>{
+const t=document.getElementById('titleInput').value.trim();
+const tech=document.getElementById('techInput').value.trim();
+const desc=document.getElementById('descInput').value.trim();
+if(!t||!tech)return alert('ضع عنوان ونوع المشروع');
+projects.unshift({id:Math.random().toString(36).substr(2,9),title:t,tech,desc,thumb:currentUploadData||''});
+saveProjects();
+document.getElementById('titleInput').value='';
+document.getElementById('techInput').value='';
+document.getElementById('descInput').value='';
+currentUploadData='';
+uploadPreview.innerHTML='+';
+};
+
+// عرض المشاريع
+const projectsGrid=document.getElementById('projectsGrid');
+function renderProjects(){projectsGrid.innerHTML='';projects.forEach(p=>{const el=document.createElement('div');el.className='card';el.innerHTML=`<div class="card-inner"><div class="card-front"><div class="card-thumb">${p.thumb?`<img src="${p.thumb}">`:'+'}</div><div class="card-body"><h3>${p.title}</h3><p>${p.desc}</p><div class="tags"><div class="tag">${p.tech}</div></div></div></div><div class="card-back"><strong>${p.title}</strong><p style="color:var(--muted)">${p.desc}</p></div></div>`;projectsGrid.appendChild(el);});}
+
+// عرض المشاريع في الصفحة الرئيسية
+const homeProjectsGrid=document.getElementById('homeProjectsGrid');
+function renderHomeProjects(){homeProjectsGrid.innerHTML='';projects.forEach(p=>{const el=document.createElement('div');el.className='card';el.innerHTML=`<div class="card-inner"><div class="card-front"><div class="card-thumb">${p.thumb?`<img src="${p.thumb}">`:'+'}</div><div class="card-body"><h3>${p.title}</h3><p>${p.desc}</p><div class="tags"><div class="tag">${p.tech}</div></div></div></div><div class="card-back"><strong>${p.title}</strong><p style="color:var(--muted)">${p.desc}</p></div></div>`;homeProjectsGrid.appendChild(el);});}
+
+// معرض الصور
+const galleryGrid=document.getElementById('galleryGrid');
+function renderGallery(){galleryGrid.innerHTML='';projects.forEach(p=>{if(!p.thumb)return;const div=document.createElement('div');div.className='card';div.innerHTML=`<div class="card-thumb"><img src="${p.thumb}"></div><div class="card-body"><h3>${p.title}</h3></div>`;galleryGrid.appendChild(div);});}
+
+// بحث وفلاتر
+document.getElementById('searchInput').oninput=e=>{
+const q=e.target.value.trim().toLowerCase();
+projectsGrid.innerHTML='';
+projects.filter(p=>p.title.toLowerCase().includes(q)||p.desc.toLowerCase().includes(q)).forEach(p=>{
+const el=document.createElement('div');el.className='card';el.innerHTML=`<div class="card-inner"><div class="card-front"><div class="card-thumb">${p.thumb?`<img src="${p.thumb}">`:'+'}</div><div class="card-body"><h3>${p.title}</h3><p>${p.desc}</p><div class="tags"><div class="tag">${p.tech}</div></div></div></div><div class="card-back"><strong>${p.title}</strong><p style="color:var(--muted)">${p.desc}</p></div></div>`;projectsGrid.appendChild(el);
+});
+};
+
+// Three.js خلفية 3D
+const canvas=document.getElementById('bg-canvas'); 
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true}); 
+renderer.setSize(window.innerWidth,window.innerHeight); 
+const scene=new THREE.Scene(); 
+const camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000); 
+camera.position.z=40; 
+const geometry=new THREE.TorusGeometry(10,3,16,100); 
+const material=new THREE.MeshStandardMaterial({color:0x7c4dff,metalness:0.6,roughness:0.3}); 
+const torus=new THREE.Mesh(geometry,material); 
+scene.add(torus); 
+const light=new THREE.PointLight(0xffffff,1); light.position.set(50,50,50); scene.add(light); 
+const amb=new THREE.AmbientLight(0xffffff,0.25); scene.add(amb); 
+function animate(){requestAnimationFrame(animate);torus.rotation.x+=0.002;torus.rotation.y+=0.004;torus.rotation.z+=0.003;renderer.render(scene,camera);}animate(); 
+window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
+
+renderProjects();
+renderGallery();
+renderHomeProjects();
+</script>
+</body>
+</html>
